@@ -2,10 +2,13 @@ package com.lms.controller;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
+import com.lms.entity.ParamTest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class TestController {
@@ -32,6 +35,8 @@ public class TestController {
     public JSONObject testJsydResetPwd() {
         JSONObject result = new JSONObject();
 
+        JSONObject userRspJson = new JSONObject();
+
         JSONObject head = new JSONObject();
         head.set("CODE", "");
         head.set("SERVICEID", "JSTSM");
@@ -43,8 +48,11 @@ public class TestController {
         body.set("RSP", "0");
         body.set("RSPMSG", "密码修改成功!");
 
-        result.set("BODY", body);
-        result.set("HEAD", head);
+        userRspJson.set("BODY", body);
+        userRspJson.set("HEAD", head);
+
+        result.set("USERRSP", userRspJson);
+
         return result;
     }
 
@@ -78,5 +86,32 @@ public class TestController {
         result.set("code", "SUCCESS");
         result.set("data", data);
         return result;
+    }
+
+    public static void main(String[] args) {
+        ParamTest resetPwdParam = ParamTest.builder()
+                .SERVICEID("11111")
+                .LOGINACCT("lei")
+                .NEWPASSWORD("2222")
+                .build();
+
+        Map<String, Object> bodyMap = new HashMap<>();
+        bodyMap.put("LOGINACCT", resetPwdParam.getLOGINACCT());
+        bodyMap.put("NEWPASSWORD", resetPwdParam.getNEWPASSWORD());
+
+        Map<String, Object> headMap = new HashMap<>();
+        headMap.put("CODE", resetPwdParam.getCODE());
+        headMap.put("SERVICEID", resetPwdParam.getSERVICEID());
+        headMap.put("SID", resetPwdParam.getSID());
+        headMap.put("TIMESTAMP", resetPwdParam.getTIMESTAMP());
+
+        Map<String, Object> userModifyQeqMap = new HashMap<>();
+        userModifyQeqMap.put("BODY", bodyMap);
+        userModifyQeqMap.put("HEAD", headMap);
+
+        Map<String, Object> bodyParams = new HashMap<>();
+        bodyParams.put("USERMODIFYREQ", userModifyQeqMap);
+
+        System.out.println(bodyParams);
     }
 }
