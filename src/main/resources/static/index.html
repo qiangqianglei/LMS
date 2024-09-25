@@ -13,7 +13,16 @@
     <form id="searchForm" class="form-inline mb-3">
         <input type="text" id="searchName" class="form-control mr-2" placeholder="请输入查询日期">
         <button type="submit" class="btn btn-primary">查询</button>
+        <button id="addBtn" type="button" class="btn btn-success">新增</button>
     </form>
+
+    <form id="addForm" class="form-inline mb-3">
+        <input type="text" id="workDate" class="form-control mr-2" placeholder="请输入日期">
+        <input type="text" id="workHour" class="form-control mr-2" placeholder="请输入工时">
+        <input type="text" id="userId" class="form-control mr-2" placeholder="请输入用户名">
+        <button type="submit" class="btn btn-primary">确定</button>
+    </form>
+
     <table class="table">
         <thead>
         <tr>
@@ -30,6 +39,7 @@
 
 <script>
     $(document).ready(function() {
+        $("#addForm").hide();
         $('#searchForm').submit(function(event) {
             event.preventDefault();
             const name = $('#searchName').val();
@@ -46,6 +56,11 @@
                 });
             });
         });
+
+        $("#addBtn").click(function () {
+            $("#addForm").show();
+        });
+
     });
 </script>
 </body>
