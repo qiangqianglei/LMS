@@ -1,12 +1,11 @@
 package com.lms.demo.leecode;
 
-import java.util.ArrayList;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 public class Demo {
 
-    public static void main(String[] args) {
-        System.out.println(Integer.MAX_VALUE);
-    }
 
     /* 在数组的索引 index 处插入元素 num */
     void insert(int[] nums, int num, int index) {
@@ -47,5 +46,13 @@ public class Demo {
 
         ListNode n2 = n1.next;
         n0.next = n2;
+    }
+
+    public static void main(String[] args) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("username", "username");
+        jsonArray.add(jsonObject);
+        System.out.println(JSON.toJSONString(jsonArray));
     }
 }

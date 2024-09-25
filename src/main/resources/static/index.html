@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Query</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2 class="mt-5">考勤查询</h2>
+    <form id="searchForm" class="form-inline mb-3">
+        <input type="text" id="searchName" class="form-control mr-2" placeholder="请输入查询日期">
+        <button type="submit" class="btn btn-primary">查询</button>
+    </form>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>日期</th>
+            <th>工作时长</th>
+            <th>加班时长</th>
+        </tr>
+        </thead>
+        <tbody id="userTableBody">
+        <!-- 用户数据将在这里插入 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#searchForm').submit(function(event) {
+            event.preventDefault();
+            const name = $('#searchName').val();
+            $.get(`/user/list?name=${name}`, function(data) {
+                $('#userTableBody').empty(); // 清空表格
+                data.data.forEach(user => {
+                    $('#userTableBody').append(`
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.hobby}</td>
+                    </tr>
+                `);
+                });
+            });
+        });
+    });
+</script>
+</body>
+</html>
