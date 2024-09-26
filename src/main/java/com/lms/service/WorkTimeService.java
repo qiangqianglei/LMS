@@ -9,5 +9,5 @@ public interface WorkTimeService extends IService<WorkTime> {
     SysResult saveWorkTime(WorkTime workTime);
     SysResult updateWorkTime(WorkTime workTime);
     SysResult deleteWorkTime(Integer id);
-    SysResult pageWorkTime(WorkTime workTime);
+    SysResult pageWorkTime();
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Query</title>
+    <title>考勤</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
@@ -17,9 +17,9 @@
     </form>
 
     <form id="addForm" class="form-inline mb-3">
-        <input type="text" id="workDate" class="form-control mr-2" placeholder="请输入日期">
-        <input type="text" id="workHour" class="form-control mr-2" placeholder="请输入工时">
-        <input type="text" id="userId" class="form-control mr-2" placeholder="请输入用户名">
+        <input type="text" id="workDate" name="workDate" class="form-control mr-2" placeholder="请输入日期">
+        <input type="text" id="workHour" name="workHour" class="form-control mr-2" placeholder="请输入工时">
+        <input type="text" id="userId" name="userId" class="form-control mr-2" placeholder="请输入用户名">
         <button type="submit" class="btn btn-primary">确定</button>
     </form>
 
@@ -43,14 +43,14 @@
         $('#searchForm').submit(function(event) {
             event.preventDefault();
             const name = $('#searchName').val();
-            $.get(`/user/list?name=${name}`, function(data) {
+            $.get(`/workTime/page?name=${name}`, function(data) {
                 $('#userTableBody').empty(); // 清空表格
-                data.data.forEach(user => {
+                data.data.forEach(workTime => {
                     $('#userTableBody').append(`
                     <tr>
-                        <td>${user.id}</td>
-                        <td>${user.name}</td>
-                        <td>${user.hobby}</td>
+                        <td id = "date">${workTime.date}</td>
+                        <td id = "workHour">${workTime.workHour}</td>
+                        <td id = "extraWorkHour">${workTime.extraWorkHour}</td>
                     </tr>
                 `);
                 });
@@ -59,6 +59,13 @@
 
         $("#addBtn").click(function () {
             $("#addForm").show();
+            $("#addForm").submit(function (event) {
+                event.preventDefault();
+                var formData = $(this).serialize();
+                $.post("/workTime/save", formData, function (data) {
+                    console.log("data:" + data);
+                }, 'json');
+            });
         });
 
     });

@@ -30,7 +30,7 @@ public class WorkTimeServiceImpl extends ServiceImpl<WorkTimeMapper, WorkTime> i
     }
 
     @Override
-    public SysResult pageWorkTime(WorkTime workTime) {
+    public SysResult pageWorkTime() {
         List<WorkTime> list = this.list();
         return SysResult.success(list);
     }
