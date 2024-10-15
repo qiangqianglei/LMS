@@ -67,7 +67,7 @@ public class TestController {
 
         JSONObject data = new JSONObject();
         data.set("serialNum", "cj05DZQjpp40YtA3oVwNL");
-        data.set("randomCode", "991958");
+        data.set("randomCode", "123456");
 
         result.set("code", "000000");
         result.set("msg", "请求成功");
