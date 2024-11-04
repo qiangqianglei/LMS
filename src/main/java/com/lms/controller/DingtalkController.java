@@ -1,10 +1,14 @@
 package com.lms.controller;
 
 import com.aliyun.dingtalkcontact_1_0.models.GetUserHeaders;
+import com.aliyun.dingtalkcontact_1_0.models.GetUserResponseBody;
 import com.aliyun.dingtalkoauth2_1_0.models.GetUserTokenRequest;
 import com.aliyun.dingtalkoauth2_1_0.models.GetUserTokenResponse;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
+import com.dingtalk.open.app.api.OpenDingTalkStreamClientBuilder;
+import com.dingtalk.open.app.api.security.AuthClientCredential;
+import com.dingtalk.open.app.stream.protocol.event.EventAckStatus;
 import com.lms.service.impl.DingtalkServiceServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import shade.com.alibaba.fastjson2.JSON;
+import shade.com.alibaba.fastjson2.JSONObject;
 
 import java.net.URLEncoder;
 
@@ -47,18 +52,19 @@ public class DingtalkController {
      * @return
      * @throws Exception
      */
-    public String getUserinfo(String accessToken) throws Exception {
+    public GetUserResponseBody getUserinfo(String accessToken) throws Exception {
         com.aliyun.dingtalkcontact_1_0.Client client = contactClient();
         GetUserHeaders getUserHeaders = new GetUserHeaders();
         getUserHeaders.xAcsDingtalkAccessToken = accessToken;
         //获取用户个人信息，如需获取当前授权人的信息，unionId参数必须传me
-        String me = JSON.toJSONString(client.getUserWithOptions("me", getUserHeaders, new RuntimeOptions()).getBody());
-        System.out.println(me);
-        return me;
+        GetUserResponseBody responseBody = client.getUserWithOptions("me", getUserHeaders, new RuntimeOptions()).getBody();
+
+        log.info("responseBody:{}", JSON.toJSONString(responseBody));
+        return responseBody;
     }
 
 
-    @GetMapping(value = "/login")
+    @GetMapping(value = "/callback")
     public String login(@RequestParam(value = "authCode")String authCode) throws Exception {
         com.aliyun.dingtalkoauth2_1_0.Client client = authClient();
         GetUserTokenRequest getUserTokenRequest = new GetUserTokenRequest()
@@ -73,15 +79,20 @@ public class DingtalkController {
         GetUserTokenResponse getUserTokenResponse = client.getUserToken(getUserTokenRequest);
         //获取用户个人token
         String accessToken = getUserTokenResponse.getBody().getAccessToken();
-        return  getUserinfo(accessToken);
+        GetUserResponseBody responseBody = getUserinfo(accessToken);
+        return JSON.toJSONString(responseBody);
     }
 
     private String buildThirdPartyUrl() throws Exception{
-        String redirectUrl = "http://10.124.200.2:18080/dingtalk/login";
+        String redirectUrl = "http://10.124.200.2:18080/dingtalk/callback";
         redirectUrl = URLEncoder.encode(redirectUrl, "UTF-8");
-        String resultUrl = "https://login.dingtalk.com/oauth2/auth?redirect_uri=" + redirectUrl + "&response_type=code&client_id="
-                + DingtalkServiceServiceImpl.accessKey +"&scope=openid&state=dddd&prompt=consent";
+        String resultUrl = "https://login.dingtalk.com/oauth2/auth?"
+                + "redirect_uri=" + redirectUrl
+                + "&response_type=code&client_id="
+                + DingtalkServiceServiceImpl.accessKey
+                + "&scope=openid&state=dddd&prompt=consent";
         log.info("构建Url:{}", resultUrl);
         return resultUrl;
     }
+
 }

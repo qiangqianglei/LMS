@@ -24,6 +24,6 @@ public class JunitTest {
 
     @Test
     public void testGetDptList() {
-        //dingtalkService.getDptList();
+        System.out.println(dingtalkService.getUserDetailByUserId("200407370437919863", "59a2c3edcb9738aeafda862e6d40078c"));
     }
 }

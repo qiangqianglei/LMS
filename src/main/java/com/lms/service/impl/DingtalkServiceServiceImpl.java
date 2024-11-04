@@ -18,6 +18,7 @@ import com.dingtalk.api.response.OapiV2DepartmentListsubResponse;
 import com.dingtalk.api.response.OapiV2UserGetResponse;
 import com.dingtalk.api.response.OapiV2UserGetuserinfoResponse;
 import com.dingtalk.open.app.api.GenericEventListener;
+import com.dingtalk.open.app.api.OpenDingTalkClient;
 import com.dingtalk.open.app.api.OpenDingTalkStreamClientBuilder;
 import com.dingtalk.open.app.api.message.GenericOpenDingTalkEvent;
 import com.dingtalk.open.app.api.security.AuthClientCredential;
@@ -27,6 +28,7 @@ import com.lms.service.DingtalkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -230,5 +232,69 @@ public class DingtalkServiceServiceImpl implements DingtalkService {
         String userid = getUserByCode();
         JSONObject userDetailByUserid = getUserDetailByUserid(userid);
         System.out.println(userDetailByUserid);
+    }
+
+    @PostConstruct
+    public void userUpdateListener() throws Exception {
+        try {
+            OpenDingTalkClient client = OpenDingTalkStreamClientBuilder
+                    .custom()
+                    .credential(new AuthClientCredential(DingtalkServiceServiceImpl.accessKey,
+                            DingtalkServiceServiceImpl.accessSecret))
+                    //注册事件监听
+                    .registerAllEventListener(event -> {
+                        log.info("event: {}", shade.com.alibaba.fastjson2.JSON.toJSONString(event));
+                        try {
+                            //事件唯一Id
+                            String eventId = event.getEventId();
+                            //事件类型
+                            String eventType = event.getEventType();
+                            //事件产生时间
+                            Long bornTime = event.getEventBornTime();
+                            //获取事件体
+                            shade.com.alibaba.fastjson2.JSONObject bizData = event.getData();
+                            //处理事件
+                            process(bizData);
+                            //消费成功
+                            return EventAckStatus.SUCCESS;
+                        } catch (Exception e) {
+                            //消费失败
+                            return EventAckStatus.LATER;
+                        }
+                    })
+                    .build();
+            client.start();
+        } catch (Exception e) {
+            log.error(ExceptionUtil.getMessage(e));
+        }
+    }
+
+    private static void cancelListening(OpenDingTalkClient client) throws Exception{
+        if (client != null) {
+            client.stop();
+            client = null;
+        }
+    }
+
+    private void process(shade.com.alibaba.fastjson2.JSONObject bizData) {
+        System.out.println("处理事件数据: " + bizData.toJSONString());
+        List<String> userId = bizData.getList("userId", String.class);
+        userId.stream().forEach(System.out::println);
+    }
+
+    @Override
+    public String getUserDetailByUserId(String userId, String accessToken) {
+        try {
+            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/v2/user/get");
+            OapiV2UserGetRequest req = new OapiV2UserGetRequest();
+            req.setUserid(userId);
+            req.setLanguage("zh_CN");
+            OapiV2UserGetResponse rsp = client.execute(req, accessToken);
+            String body = rsp.getBody();
+            return body;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
