@@ -1,5 +1,6 @@
 package com.lms.service.impl;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -29,9 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -229,9 +229,28 @@ public class DingtalkServiceServiceImpl implements DingtalkService {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        String userid = getUserByCode();
-        JSONObject userDetailByUserid = getUserDetailByUserid(userid);
-        System.out.println(userDetailByUserid);
+        String abnormalTime = "06:00-18:00,09:00-14:15,16:00-18:00";
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        Arrays.stream(abnormalTime.split(",")).forEach(item -> {
+            String[] split = item.split("-");
+            String startTime = split[0];
+            String endTime = split[1];
+
+            try {
+                Long startTimeLong = sdf.parse(startTime).getTime();
+                Long endTimeLong = sdf.parse(endTime).getTime();
+                long nowTimeLong = sdf.parse(sdf.format(new Date())).getTime();
+
+                if (nowTimeLong >= startTimeLong && nowTimeLong <= endTimeLong) {
+                    System.out.println("当前时间在：" + item + " 时间段内");
+                } else {
+                    System.out.println("当前时间不在：" + item + " 时间段内");
+                }
+            } catch (Exception e) {
+                log.error(ExceptionUtil.getMessage(e));
+            }
+        });
+
     }
 
     @PostConstruct
@@ -297,4 +316,5 @@ public class DingtalkServiceServiceImpl implements DingtalkService {
         }
         return null;
     }
+
 }
