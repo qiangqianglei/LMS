@@ -7,6 +7,7 @@ import com.lms.mapper.LmsUserInfoMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
 * @author lqq21
@@ -27,6 +28,15 @@ public class LmsUserInfoServiceImpl extends ServiceImpl<LmsUserInfoMapper, LmsUs
         return this.list();
     }
 
+    public static void main(String[] args) {
+        String version = "我是谁";
+        String reg = "^[^\\u4e00-\\u9fa5]+$";
+        if (Pattern.compile(reg).matcher(version).find()) {
+            System.out.println("校验通过");
+        } else {
+            System.out.println("校验bu通过");
+        }
+    }
 
 }
 

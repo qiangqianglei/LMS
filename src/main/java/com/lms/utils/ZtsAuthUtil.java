@@ -1,5 +1,6 @@
 package com.lms.utils;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,10 +11,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class ZtsAuthUtil {
@@ -170,7 +170,11 @@ public class ZtsAuthUtil {
             socket.setSoTimeout(60*1000);
 
             // 2.创建DatagramPacket，接收数据
-            SBuf = encrypt(Integer.toString(100000 + (new Random()).nextInt(900000)) + SBuf,"1234567890abcdef");
+            Integer randomId = 100000 + (new Random().nextInt(900000));
+            // 测试重放攻击
+            // Integer randomId = 100000;
+
+            SBuf = encrypt(randomId + SBuf,"1234567890abcdef");
             DatagramPacket packet = new DatagramPacket(SBuf.getBytes(), 0, SBuf.getBytes().length, InetAddress.getByName(ip), port);
             // 3.发送数据
             socket.send(packet);
@@ -827,8 +831,39 @@ public class ZtsAuthUtil {
     }
 
     public static void main(String[] args) throws Throwable{
-        String username = "lpp";
         String password = "1";
-        auth(username, password);
+        String username = "lpp";
+        //List<String> nameList = getNameList();
+
+//        nameList.parallelStream().forEach(name -> {
+//            try {
+//                auth(name, password);
+//                Thread.sleep(100);
+//            } catch (Throwable throwable) {
+//                throwable.printStackTrace();
+//            }
+//        });
+        try {
+                auth(username, password);
+                Thread.sleep(100);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
     }
+
+    /**
+     * 获取20000个用户名
+     * uu-(1-25)-(1-800)
+     * @return
+     */
+    private static List<String> getNameList() {
+        List<String> nameList = new ArrayList<>();
+        for (int i = 1; i < 25; i ++) {
+            for (int j = 1; j < 800; j ++) {
+                nameList.add("uu" + "-" + i + "-" + j);
+            }
+        }
+        return nameList;
+    }
+
 }

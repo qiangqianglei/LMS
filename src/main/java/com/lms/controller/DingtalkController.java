@@ -4,11 +4,9 @@ import com.aliyun.dingtalkcontact_1_0.models.GetUserHeaders;
 import com.aliyun.dingtalkcontact_1_0.models.GetUserResponseBody;
 import com.aliyun.dingtalkoauth2_1_0.models.GetUserTokenRequest;
 import com.aliyun.dingtalkoauth2_1_0.models.GetUserTokenResponse;
+import com.aliyun.tea.TeaException;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
-import com.dingtalk.open.app.api.OpenDingTalkStreamClientBuilder;
-import com.dingtalk.open.app.api.security.AuthClientCredential;
-import com.dingtalk.open.app.stream.protocol.event.EventAckStatus;
 import com.lms.service.impl.DingtalkServiceServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -16,9 +14,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import shade.com.alibaba.fastjson2.JSON;
-import shade.com.alibaba.fastjson2.JSONObject;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
+import java.util.Enumeration;
 
 @Controller
 @RequestMapping("/dingtalk")
@@ -66,19 +65,40 @@ public class DingtalkController {
 
     @GetMapping(value = "/callback")
     public String login(@RequestParam(value = "authCode")String authCode) throws Exception {
+        log.info("authCode:{}", authCode);
+        String accessKey = "ding5k6i1yz66jmiznhj";
+        String accessSecret = "cb51I5XcyNZR6xnOU37sLBy6sdRg3IHuP8vukBVVLZX_CTnPaLBO1sX6kTFZ83_d";
         com.aliyun.dingtalkoauth2_1_0.Client client = authClient();
         GetUserTokenRequest getUserTokenRequest = new GetUserTokenRequest()
 
                 //应用基础信息-应用信息的AppKey,请务必替换为开发的应用AppKey
-                .setClientId(DingtalkServiceServiceImpl.accessKey)
+                .setClientId(accessKey)
 
                 //应用基础信息-应用信息的AppSecret，,请务必替换为开发的应用AppSecret
-                .setClientSecret(DingtalkServiceServiceImpl.accessSecret)
+                .setClientSecret(accessSecret)
                 .setCode(authCode)
                 .setGrantType("authorization_code");
-        GetUserTokenResponse getUserTokenResponse = client.getUserToken(getUserTokenRequest);
+        GetUserTokenResponse getUserTokenResponse = null;
+        try {
+            getUserTokenResponse = client.getUserToken(getUserTokenRequest);
+        } catch (TeaException err) {
+            if (!com.aliyun.teautil.Common.empty(err.code) && !com.aliyun.teautil.Common.empty(err.message)) {
+                log.error("获取用户token异常，异常信息：{}， {}", err.getCode(), err.getMessage());
+            }
+
+        } catch (Exception _err) {
+            TeaException err = new TeaException(_err.getMessage(), _err);
+            if (!com.aliyun.teautil.Common.empty(err.code) && !com.aliyun.teautil.Common.empty(err.message)) {
+                // err 中含有 code 和 message 属性，可帮助开发定位问题
+                log.error("获取用户token异常，异常信息：{}， {}", err.getCode(), err.getMessage());
+            }
+
+        }
+
+
         //获取用户个人token
         String accessToken = getUserTokenResponse.getBody().getAccessToken();
+        log.info("accessToken:{}", accessToken);
         GetUserResponseBody responseBody = getUserinfo(accessToken);
         return JSON.toJSONString(responseBody);
     }
@@ -94,5 +114,18 @@ public class DingtalkController {
         log.info("构建Url:{}", resultUrl);
         return resultUrl;
     }
+
+
+     @GetMapping(value = "/scanCallback")
+    public String scanCallback(HttpServletRequest request) throws Exception {
+         Enumeration<String> parameterNames = request.getParameterNames();
+         while (parameterNames.hasMoreElements()) {
+             String parameterName = parameterNames.nextElement();
+             String parameterValue = request.getParameter(parameterName);
+             log.info("参数：{}，值：{}", parameterName, parameterValue);
+         }
+         return "回调成功";
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.lms.controller;
 
+import com.lms.entity.Leiqq;
 import com.lms.entity.LmsUserInfo;
 import com.lms.service.LmsUserInfoService;
 import com.lms.vo.SysResult;
@@ -14,7 +15,7 @@ public class UserController {
     private LmsUserInfoService userInfoService;
 
     @PostMapping("/save")
-    public SysResult save(@RequestBody LmsUserInfo userInfo) {
+    public SysResult save(@RequestBody Leiqq userInfo) {
         userInfoService.save(userInfo);
         return SysResult.success();
     }
