@@ -56,6 +56,16 @@ public class TestController {
         return result;
     }
 
+    @PostMapping("/authn/aisauth/authAcct")
+    public JSONObject testJsydAuth() {
+        JSONObject result = new JSONObject();
+
+        result.set("code", "000000");
+        result.set("msg", "请求成功");
+        result.set("data", true);
+        return result;
+    }
+
     /**
      * { "code": "000000", "msg": "请求成功", "data":
      * { "serialNum": "cj05DZQjpp40YtA3oVwNL", "randomCode": "991958" }}

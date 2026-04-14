@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -66,36 +67,41 @@ public class ZtsAuthUtil {
     public static Map<String, String> analysisMessageMap(String message,Integer containRandom) {
         message = message.trim();
         Map<String, String> map = new HashMap();
-        try{
-            if(containRandom == 1){
+        try {
+            if (containRandom == 1) {
                 message = message.substring(6);
             }
 
-            /**
-             * 由于控制器批量给网关发送报文，会话ID可能超过六位，所以这个需要记录每个会话ID对应的长度，以便后面对报文的处理
-             */
-            while(6 < message.length()){
+            while (6 < message.length()) {
                 String key = message.substring(0, 3);
-                int len = Integer.parseInt(message.substring(3, 6));
+                int len;
+
+                // 特殊处理640：直接读取剩余全部内容
+                if ("640".equals(key) || "641".equals(key)) {
+                    try {
+                        // 计算剩余内容的字节长度（GBK编码）
+                        len = getStringByteLenths(message.substring(6));
+                    } catch (UnsupportedEncodingException e) {
+                        len = message.substring(6).getBytes("GBK").length;
+                    }
+                } else {
+                    len = Integer.parseInt(message.substring(3, 6));
+                }
 
                 StringBuffer valueBuffer = new StringBuffer();
-                message = message.substring(6);
-                String s  = substringByte(message, 0, len);
-                if(map.containsKey(key)){
-                    valueBuffer.append(map.get(key) + s);
-                }else{
+                message = message.substring(6); // 跳过头部
+                String s = substringByte(message, 0, len); // 截取内容
+
+                if (map.containsKey(key)) {
+                    valueBuffer.append(map.get(key)).append(s);
+                } else {
                     valueBuffer.append(s);
                 }
                 map.put(key, valueBuffer.toString());
-
-                //640包含敏感字，需要特殊处理
-                if(key.contains("640"))
-                    message = message.substring(s.length() + 1);
-                else
-                    message = message.substring(s.length());
+                message = message.substring(s.length()); // 更新剩余消息
             }
             return map;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return new HashMap<>();
         }
@@ -376,8 +382,11 @@ public class ZtsAuthUtil {
             String SBuf =
                     str2Attr("001", name) +                                //*账户名
                             str2Attr("401", "050") +                               //交互类型（CS/CG/SG）
-                            str2Attr("404", sessionID);                            //会话ID
-
+                            str2Attr("622", "System,pdfServer.exe,IntelCpHeciSvc.exe,AggregatorHost.exe,zts_services.exe,aTrustAgent.exe,Memory Compression,aTrustXtunnel.exe,cmd.exe,igfxEM.exe,conhost.exe,fontdrvhost.exe,winlogon.exe,SogouCloud.exe,SogouImeBroker.exe,spoolsv.exe,smss.exe,RtkAudUService64.exe,zts_client_ui.exe,audiodg.exe,convSpeedup.exe,SecurityHealthService.exe,igfxCUIService.exe,dwm.exe,wpscloudsvr.exe,svchost.exe,wps.exe,eaio_agent.exe,services.exe,convServer.exe,WmiPrvSE.exe,SOGOUSmartAssistant.exe,Secure System,eaio_service.exe,notepad++.exe,SearchHost.exe,fsnotifier64.exe,jhi_service.exe,LMS.exe,csrss.exe,SangforPW.exe,rdm.exe,idea64.exe,lsass.exe,rundll32.exe,vmcompute.exe,OfficeClickToRun.exe,SearchProtocolHost.exe,promecefpluginhost.exe,dasHost.exe,OneApp.IGCC.WinService.exe,sihost.exe,SangforPWEx.exe,SangforPromoteService.exe,WUDFHost.exe,PDFEngine.exe,SGTool.exe,chrome.exe") +                               //客户端所有在运行进程
+                            str2Attr("623", "System,pdfServer.exe,IntelCpHeciSvc.exe,AggregatorHost.exe,zts_services.exe,aTrustAgent.exe,Memory Compression,aTrustXtunnel.exe,cmd.exe,igfxEM.exe,conhost.exe,fontdrvhost.exe,winlogon.exe,SogouCloud.exe,SogouImeBroker.exe,spoolsv.exe,smss.exe,RtkAudUService64.exe,zts_client_ui.exe,audiodg.exe,convSpeedup.exe,SecurityHealthService.exe,igfxCUIService.exe,dwm.exe,wpscloudsvr.exe,svchost.exe,wps.exe,eaio_agent.exe,services.exe,convServer.exe,WmiPrvSE.exe,SOGOUSmartAssistant.exe,Secure System,eaio_service.exe,notepad++.exe,SearchHost.exe,fsnotifier64.exe,jhi_service.exe,LMS.exe,csrss.exe,SangforPW.exe,rdm.exe,idea64.exe,lsass.exe,rundll32.exe,vmcompute.exe,OfficeClickToRun.exe,SearchProtocolHost.exe,promecefpluginhost.exe,dasHost.exe,OneApp.IGCC.WinService.exe,sihost.exe,SangforPWEx.exe,SangforPromoteService.exe,WUDFHost.exe,PDFEngine.exe,SGTool.exe,chrome.exe") +                               //客户端所有在运行进程
+                            str2Attr("624", "System,pdfServer.exe,IntelCpHeciSvc.exe,AggregatorHost.exe,zts_services.exe,aTrustAgent.exe,Memory Compression,aTrustXtunnel.exe,cmd.exe,igfxEM.exe,conhost.exe,fontdrvhost.exe,winlogon.exe,SogouCloud.exe,SogouImeBroker.exe,spoolsv.exe,smss.exe,RtkAudUService64.exe,zts_client_ui.exe,audiodg.exe,convSpeedup.exe,SecurityHealthService.exe,igfxCUIService.exe,dwm.exe,wpscloudsvr.exe,svchost.exe,wps.exe,eaio_agent.exe,services.exe,convServer.exe,WmiPrvSE.exe,SOGOUSmartAssistant.exe,Secure System,eaio_service.exe,notepad++.exe,SearchHost.exe,fsnotifier64.exe,jhi_service.exe,LMS.exe,csrss.exe,SangforPW.exe,rdm.exe,idea64.exe,lsass.exe,rundll32.exe,vmcompute.exe,OfficeClickToRun.exe,SearchProtocolHost.exe,promecefpluginhost.exe,dasHost.exe,OneApp.IGCC.WinService.exe,sihost.exe,SangforPWEx.exe,SangforPromoteService.exe,WUDFHost.exe,PDFEngine.exe,SGTool.exe,chrome.exe") +                               //客户端所有在运行进程
+                            str2Attr("625", "System,pdfServer.exe,IntelCpHeciSvc.exe,AggregatorHost.exe,zts_services.exe,aTrustAgent.exe,Memory Compression,aTrustXtunnel.exe,cmd.exe,igfxEM.exe,conhost.exe,fontdrvhost.exe,winlogon.exe,SogouCloud.exe,SogouImeBroker.exe,spoolsv.exe,smss.exe,RtkAudUService64.exe,zts_client_ui.exe,audiodg.exe,convSpeedup.exe,SecurityHealthService.exe,igfxCUIService.exe,dwm.exe,wpscloudsvr.exe,svchost.exe,wps.exe,eaio_agent.exe,services.exe,convServer.exe,WmiPrvSE.exe,SOGOUSmartAssistant.exe,Secure System,eaio_service.exe,notepad++.exe,SearchHost.exe,fsnotifier64.exe,jhi_service.exe,LMS.exe,csrss.exe,SangforPW.exe,rdm.exe,idea64.exe,lsass.exe,rundll32.exe,vmcompute.exe,OfficeClickToRun.exe,SearchProtocolHost.exe,promecefpluginhost.exe,dasHost.exe,OneApp.IGCC.WinService.exe,sihost.exe,SangforPWEx.exe,SangforPromoteService.exe,WUDFHost.exe,PDFEngine.exe,SGTool.exe,chrome.exe") +                               //客户端所有在运行进程
+                            str2Attr("404", sessionID);
 
             log("[策略执行]发送：" + SBuf);
             String url = "https://" + ZtsMAddress + ":" + ztsMSSLPort + "/UMC/zts/ZtsHttpsRequest.action";
@@ -817,10 +826,10 @@ public class ZtsAuthUtil {
      */
     public static void auth(String username, String password) throws Throwable {
 
-        ZtsMAddress = "10.134.251.59";        //控制器IP
+        ZtsMAddress = "10.136.21.22";        //控制器IP
         ztsMSPAPort = 61113;                   //控制器SPA端口
         ztsMSSLPort = 61113;                   //控制器SSL接入端口
-        ZtsAPXAddress = "10.134.251.238";      //网关IP
+        ZtsAPXAddress = "10.136.17.24";      //网关IP
         ztsAPXSPAPort = 61113;                 //网关SPA端口
         ztsAPXSSLPort = 61113;                 //网关SSL接入端口
         ztsMUdpRecv = true;                    //是否等待UDP回包，新平台设置true，旧平台设置false
@@ -831,24 +840,17 @@ public class ZtsAuthUtil {
     }
 
     public static void main(String[] args) throws Throwable{
-        String password = "1";
-        String username = "lpp";
-        //List<String> nameList = getNameList();
-
-//        nameList.parallelStream().forEach(name -> {
-//            try {
-//                auth(name, password);
-//                Thread.sleep(100);
-//            } catch (Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//        });
+        /*String password = "1.";
+        String username = "uu-1-1";
         try {
                 auth(username, password);
                 Thread.sleep(100);
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
-            }
+            }*/
+        String  s = "401003051404006400048013003D:0641451[{\"domainId\":\"2305000000000001\",\"latestModifyTime\":\"1753344836902\",\"noticeInvalidTime\":\"0\",\"noticePictureUrl\":\"\",\"preview\":\"微信及Google浏览器存在安全隐患，建议涉及终端尽快将Google浏览器升级至138.0.7204.157版本及以上，微信PC端请升级至4\",\"title\":\"【安全提醒】微信及Google浏览器存在安全隐患,建议涉及终端尽快完成升级！\",\"url\":\"/zts/notice/25072416050000387426325783374379457.html\"}]6560010640999[{\"behavior\":\"开放减分UDP端口\",\"behaviorId\":116,\"detail\":\"20,21,22,23,25,53,67,68,69,80,110,119,123,135,137,138,139,143,161,162,389,443,445,465,500,514,515,520,546,547,587,593,636,691,902,989,990,993,995,1025,1026,1027,1028,1029,1030,1194,1433,1434,1701,1720,1723,1812,1813,1863,1900,2000,2049,2082,2083,2086,2087,2095,2096,2222,2302,2483,2484,2638,3074,3260,3268,3269,3306,3389,3689,3690,3724,3725,4000,4500,4662,4664,4672,4899,5000,5001,5004,5005,5050,5060,5190,5222,5223,5269,5298,5500,5631,5632,5666,5800,5900,6000,6001,6112,6129,6257,6346,6347,6500,6566,6588,6665,6666,6667,6668,6669,6679,6697,6999,7000,7001,7070,7236,7777,7778,8000,8008,8009,8010,8074,8080,8081,8085,8086,8087,8088,8090,8097,8118,8123,8181,8200,8222,8291,8333,8400,8443,8484,8500,8649,8765,8777,8888,8899,9000,9001,9009,9010,9043,9060,9080,9090,9091,9100,9101,9102,9119,9290,9443,9999,10000\",\"score\":\"-855\",\"time\":1776043110925},{\"behavior\":\"开放减分TCP端口\",\"behaviorId\":115,\"detail\":\"20,21,22,23,25,53,67,68,69,64099980,110,119,123,135,137,138,139,143,161,162,389,443,445,465,500,514,515,520,546,547,587,593,636,691,902,989,990,993,995,1025,1026,1027,1028,1029,1030,1194,1433,1434,1701,1720,1723,1812,1813,1863,1900,2000,2049,2082,2083,2086,2087,2095,2096,2222,2302,2483,2484,2638,3074,3260,3268,3269,3306,3389,3689,3690,3724,3725,4000,4500,4662,4664,4672,4899,5000,5001,5004,5005,5050,5060,5190,5222,5223,5269,5298,5500,5631,5632,5666,5800,5900,6000,6001,6112,6129,6257,6346,6347,6500,6566,6588,6665,6666,6667,6668,6669,6679,6697,6999,7000,7001,7070,7236,7777,7778,8000,8008,8009,8010,8074,8080,8081,8085,8086,8087,8088,8090,8097,8118,8123,8181,8200,8222,8291,8333,8400,8443,8484,8500,8649,8765,8777,8888,8899,9000,9001,9009,9010,9043,9060,9080,9090,9091,9100,9101,9102,9119,9290,9443,9999,10000\",\"score\":\"-855\",\"time\":1776043110923},{\"behavior\":\"安装减分软件\",\"behaviorId\":114,\"detail\":\"Google Chrome,Microsoft Edge,Microsoft Office,Adobe Photoshop,Adobe Acrobat Reader,WinRAR,7-Zip,VLC Media Player,Windows 640999Media Player,Spotify,QQ,WeChat,Telegram,Discord,Zoom,Microsoft Teams,Skype,Steam,Epic Games,Unity,Visual Studio Code,IntelliJ IDEA,PyCharm,Eclipse,Android Studio,Oracle VM VirtualBox,VMware Workstation,Adobe Premiere Pro,Adobe Illustrator,Adobe After Effects,CorelDRAW,AutoCAD,SketchUp,Notepad++,Sublime Text,Python,Java Runtime Environment,.NET Framework,Node.js,MySQL Workbench,MySQL Server,Microsoft SQL Server,MongoDB,PostgreSQL,Oracle Database,Git,Docker,Postman,Insomnia,Fiddler,Wireshark,FileZilla,WinSCP,PuTTY,TeamViewer,AnyDesk,UltraVNC,Google Drive,OneDrive,Dropbox,Baidu Netdisk,iTunes,CCleaner,Malwarebytes,Windows Defender,Avast Antivirus,Norton Antivirus,Kaspersky,McAfee,360 Safe,QQ Browser,Sogou Pinyin,Google Pinyin,Microsoft Pinyin\",\"score\":\"-370\",\"time\":1776043110922},{\"behavior\":\"安装加分软件\",\"behaviorId\":2,\"detail\":\"Google Chrome,Microsoft Edge,Microsoft Office,Adobe Photoshop,Adobe Acrobat Reader,WinRAR,7-Zip,VLC Media Player,Windows Media Player,Spotify,QQ,WeChat,T640999elegram,Discord,Zoom,Microsoft Teams,Skype,Steam,Epic Games,Unity,Visual Studio Code,IntelliJ IDEA,PyCharm,Eclipse,Android Studio,Oracle VM VirtualBox,VMware Workstation,Adobe Premiere Pro,Adobe Illustrator,Adobe After Effects,CorelDRAW,AutoCAD,SketchUp,Notepad++,Sublime Text,Python,Java Runtime Environment,.NET Framework,Node.js,MySQL Workbench,MySQL Server,Microsoft SQL Server,MongoDB,PostgreSQL,Oracle Database,Git,Docker,Postman,Insomnia,Fiddler,Wireshark,FileZilla,WinSCP,PuTTY,TeamViewer,AnyDesk,UltraVNC,Google Drive,OneDrive,Dropbox,Baidu Netdisk,iTunes,CCleaner,Malwarebytes,Windows Defender,Avast Antivirus,Norton Antivirus,Kaspersky,McAfee,360 Safe,QQ Browser,Sogou Pinyin,Google Pinyin,Microsoft Pinyin\",\"score\":\"+370\",\"time\":1776043110920},{\"behavior\":\"减分进程\",\"behaviorId\":113,\"detail\":\"System.exe,Explorer.exe,svchost.exe,winlogon.exe,csrss.exe,services.exe,lsass.exe,smss.exe,dwm.exe,taskhost.exe,spoolsv.exe,msmpeng.exe,chrome.exe,firefox.exe,teams.exe,zoom.exe,discord.exe640999,spotify.exe,steam.exe,epicgames.exe,onedrive.exe,dropbox.exe,vscode.exe,pycharm.exe,eclipse.exe,outlook.exe,thunderbird.exe,word.exe,excel.exe,powerpnt.exe,acrobat.exe,photoshop.exe,illustrator.exe,premiere.exe,autocad.exe,solidworks.exe,vmware.exe,virtualbox.exe,putty.exe,winscp.exe,filezilla.exe,utorrent.exe,qbittorrent.exe,ccleaner.exe,malwarebytes.exe,avastui.exe,norton.exe,teamviewer.exe,anydesk.exe,git.exe,docker.exe,node.exe,python.exe,java.exe,mysql.exe,sqlservr.exe,oracle.exe,apache.exe,nginx.exe,iisexpress.exe,powershell.exe,cmd.exe,regedit.exe,msconfig.exe,taskmgr.exe,control.exe,calc.exe,notepad.exe,mspaint.exe,snippingtool.exe,winword.exe,excel.exe,powerpnt.exe\",\"score\":\"-365\",\"time\":1776043110910},{\"behavior\":\"加分进程\",\"behaviorId\":1,\"detail\":\"System.exe,Explorer.exe,svchost.exe,winlogon.exe,csrss.exe,services.exe,lsass.exe,smss.exe,dwm.exe,taskhost.exe,spoolsv.exe,msmpeng.exe,chrome.exe,firefox.exe,teams.exe,zoom.exe,discord.exe,spotify.exe,steam.exe,epicgames.exe640686,onedrive.exe,dropbox.exe,vscode.exe,pycharm.exe,eclipse.exe,outlook.exe,thunderbird.exe,word.exe,excel.exe,powerpnt.exe,acrobat.exe,photoshop.exe,illustrator.exe,premiere.exe,autocad.exe,solidworks.exe,vmware.exe,virtualbox.exe,putty.exe,winscp.exe,filezilla.exe,utorrent.exe,qbittorrent.exe,ccleaner.exe,malwarebytes.exe,avastui.exe,norton.exe,teamviewer.exe,anydesk.exe,git.exe,docker.exe,node.exe,python.exe,java.exe,mysql.exe,sqlservr.exe,oracle.exe,apache.exe,nginx.exe,iisexpress.exe,powershell.exe,cmd.exe,regedit.exe,msconfig.exe,taskmgr.exe,control.exe,calc.exe,notepad.exe,mspaint.exe,snippingtool.exe,winword.exe,excel.exe,powerpnt.exe\",\"score\":\"+365\",\"time\":1776043110909}]65200116530011703000704000667175您上次于2026-04-13 09:17:32登录成功，终端上次登录IP地址为10.136.18.160，上次登录终端系统为Windows11，终端本次登录IP地址为10.136.18.160。7190006920013";
+        Map<String, String> stringStringMap = analysisMessageMap(s, 0);
+        System.out.println(stringStringMap);
     }
 
     /**
