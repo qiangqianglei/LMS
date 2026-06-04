@@ -5,7 +5,7 @@ spring:
     name: lms
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://10.134.251.46:3306/lms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://10.136.30.1:3306/lms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: zts_jlHZ4246
 mybatis-plus:

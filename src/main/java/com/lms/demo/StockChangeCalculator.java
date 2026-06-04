@@ -31,15 +31,6 @@ public class StockChangeCalculator {
                 // 输出结果，保留两位小数
                 System.out.printf("涨幅: %.2f%%\n", change);
 
-                // 根据涨幅给出提示信息
-                if (change > 0) {
-                    System.out.println("股票上涨↑");
-                } else if (change < 0) {
-                    System.out.println("股票下跌↓");
-                } else {
-                    System.out.println("价格持平→");
-                }
-
             } catch (Exception e) {
                 System.out.println("输入错误，请输入有效的数字。");
                 scanner.nextLine(); // 清除错误的输入
