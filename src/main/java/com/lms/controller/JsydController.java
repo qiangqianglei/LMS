@@ -75,6 +75,10 @@ public class JsydController {
         return result;
     }
 
+    /**
+     * { "code": "000000", "msg": "请求成功", "data": null, "exception": null }
+     * @return
+     */
     @PostMapping("/js-cm-csc/imc/user/resetPwd")
     public JSONObject testResetPwd() {
         JSONObject result = new JSONObject();
